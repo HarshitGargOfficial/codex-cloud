@@ -15,11 +15,16 @@
   <div class="starfield" aria-hidden="true"></div>
   <header class="site-header">
     <a class="brand" href="/" aria-label="Orbit home"><span class="brand-mark" aria-hidden="true">◉</span> orbit<span class="brand-period">.</span></a>
-    <nav aria-label="Main navigation"><a href="#explore">Explore</a><a href="#perspective">Our perspective</a></nav>
+    <nav class="orbit-nav" aria-label="Main navigation">
+      <a href="#top" data-section="top" aria-label="Back to top" aria-current="location"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><ellipse cx="12" cy="12" rx="10" ry="5" transform="rotate(-30 12 12)"/></svg><span class="nav-label">Home</span></a>
+      <a href="#solar-system" data-section="solar-system" aria-label="Solar system"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><span class="nav-label">Solar system</span></a>
+      <a href="#explore" data-section="explore" aria-label="Destinations"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="3"/></svg><span class="nav-label">Worlds</span></a>
+      <a href="#perspective" data-section="perspective" aria-label="Our perspective"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M2 12h20M5 5l14 14M5 19 19 5"/></svg><span class="nav-label">Perspective</span></a>
+    </nav>
     <a class="header-link" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">The universe awaits <span class="arrow-icon" aria-hidden="true"></span></a>
   </header>
   <main>
-    <section class="hero" aria-labelledby="hero-title">
+    <section id="top" class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow"><span class="status-dot"></span> A FIELD GUIDE TO THE EXTRAORDINARY</p>
         <h1 id="hero-title">A little<br>further <em>out.</em></h1>

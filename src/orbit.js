@@ -1,3 +1,4 @@
+import './navigation.js';
 'use strict';
 import { planetByKey as worlds } from './planets.js';
 const tabs = [...document.querySelectorAll('[data-planet]')];
