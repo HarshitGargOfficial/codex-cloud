@@ -39,18 +39,33 @@ function stopTour() {
   $('solar-tour').replaceChildren(document.createTextNode('Take the tour '), Object.assign(document.createElement('span'), { className: 'arrow-icon' }));
   if (ready) setStatus(selected ? `${planetByKey[selected].name.toUpperCase()} / PLANET ${planetByKey[selected].number}` : 'LIVE / EIGHT WORLDS IN MOTION');
 }
+function positionInfoCard() {
+  const panel = $('solar-panel');
+  const sheet = window.innerWidth <= 700 && Boolean(selected);
+  if (sheet && panel.parentElement !== shell) shell.insertBefore(panel, shell.querySelector('.solar-toolbar'));
+  if (!sheet && panel.parentElement !== stage) stage.insertBefore(panel, stage.querySelector('.solar-view-controls'));
+}
+function setFact(id, value, unit) {
+  $(id).replaceChildren(Object.assign(document.createElement('span'), { textContent: value }), Object.assign(document.createElement('small'), { textContent: unit }));
+}
 function renderPlanetInfo(key) {
   const planet = planetByKey[key];
   shell.classList.remove('solar-overview');
   selected = key;
-  $('solar-kicker').textContent = `PLANET ${planet.number} / ${planet.type.toUpperCase()}`;
+  $('solar-kicker').textContent = `FIELD NOTES / ${planet.number}`;
+  $('solar-kind').textContent = planet.type;
+  for (const id of ['solar-card-close', 'solar-card-globe', 'solar-kind']) $(id).hidden = false;
+  $('solar-card-globe').style.setProperty('--world-color', planet.color);
+  $('solar-card-globe').style.setProperty('--world-shadow', planet.palette[0]);
+  $('solar-card-globe').dataset.world = key;
+  positionInfoCard();
   $('solar-name').textContent = planet.name;
   $('solar-subtitle').textContent = planet.subtitle;
   $('solar-description').textContent = planet.description;
   $('solar-facts').hidden = false;
-  $('solar-distance').textContent = `${planet.distance} km`;
-  $('solar-year').textContent = `${planet.year} Earth years`;
-  $('solar-diameter').textContent = `${planet.diameter} km`;
+  setFact('solar-distance', planet.distance, 'km');
+  setFact('solar-year', planet.year, 'Earth years');
+  setFact('solar-diameter', planet.diameter, 'km');
   $('solar-learn').href = `https://science.nasa.gov/${key}/`;
   $('solar-learn').replaceChildren(document.createTextNode(`Discover ${planet.name} `), Object.assign(document.createElement('span'), { className: 'arrow-icon' }));
   planetButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.focus === key)));
@@ -59,6 +74,8 @@ function renderPlanetInfo(key) {
 function overviewInfo() {
   shell.classList.add('solar-overview');
   selected = null;
+  positionInfoCard();
+  for (const id of ['solar-card-close', 'solar-card-globe', 'solar-kind']) $(id).hidden = true;
   $('solar-kicker').textContent = 'A COSMIC NEIGHBORHOOD';
   $('solar-name').textContent = 'A bigger picture.';
   $('solar-subtitle').textContent = 'A small place in an extraordinary universe.';
@@ -115,6 +132,7 @@ document.querySelectorAll('[data-speed]').forEach(button => button.addEventListe
   updatePlayback();
 }));
 $('solar-reset').addEventListener('click', resetView);
+$('solar-card-close').addEventListener('click', resetView);
 $('solar-tour').addEventListener('click', () => {
   if (tourActive) { stopTour(); return; }
   if (!ready) return;
@@ -222,15 +240,16 @@ function buildAsteroids() {
 }
 function resize() {
   if (failed) return;
+  positionInfoCard();
   const width = stage.clientWidth, height = stage.clientHeight;
   if (!width || !height) return;
   if (flatScene) { flatScene.resize(width, height); return; }
   if (!renderer) return;
   camera.aspect = width / height;
   const mobile = width <= 700;
-  const bounds = { left: mobile ? 25 : 290, right: width - (mobile ? 25 : 70), top: mobile ? 225 : 70, bottom: height - 75 };
+  const bounds = { left: mobile ? 25 : 290, right: width - (mobile ? 25 : 70), top: mobile ? (selected ? 70 : 225) : 70, bottom: height - 75 };
   const centerX = (bounds.left + bounds.right) / 2;
-  const centerY = selected ? (mobile ? height * .69 : height * .5) : (bounds.top + bounds.bottom) / 2;
+  const centerY = selected ? height * .5 : (bounds.top + bounds.bottom) / 2;
   camera.setViewOffset(width, height, width / 2 - centerX, height / 2 - centerY, width, height);
   camera.updateProjectionMatrix(); renderer.setSize(width, height);
   if (composer) composer.setSize(width, height);
@@ -286,6 +305,7 @@ function updateCamera(now, previousSelectedPosition) {
   controls.update();
 }
 function updateLabels() {
+  positionInfoCard();
   const width = stage.clientWidth, height = stage.clientHeight;
   for (const { root, label, data } of sceneLabels) {
     temp.copy(root.position); temp.y += Math.max(data.radius, 1.05) + .8; temp.project(camera);

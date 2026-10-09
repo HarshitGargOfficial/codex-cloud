@@ -35,7 +35,7 @@ export class SolarFallback {
   render(time, selected) {
     const mobile = this.width <= 700;
     const left = mobile ? 25 : 290, right = this.width - (mobile ? 25 : 70);
-    const top = mobile ? (selected ? 315 : 225) : 70, bottom = this.height - 80;
+    const top = mobile ? (selected ? 70 : 225) : 70, bottom = this.height - 80;
     const centerX = (left + right) / 2, centerY = (top + bottom) / 2;
     const maxRadius = Math.max(40, Math.min((right - left) / 2 - 16, (bottom - top) / 2 - 24));
     this.sun.setAttribute('cx', centerX); this.sun.setAttribute('cy', centerY); this.sun.setAttribute('r', mobile ? 10 : 18);
