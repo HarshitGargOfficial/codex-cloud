@@ -6,13 +6,17 @@
   "type": "commonjs",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch app.js"
+    "dev": "node --watch app.js",
+    "build": "esbuild src/orbit.js src/solar-system.js --bundle --minify --format=esm --outdir=public",
+    "postinstall": "npm run build"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
     "ejs": "^7.0.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "three": "^0.186.1",
+    "esbuild": "^0.28.2"
   }
 }

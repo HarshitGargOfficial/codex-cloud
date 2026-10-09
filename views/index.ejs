@@ -3,11 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#111311">
   <meta name="description" content="A little perspective from a very big universe. Explore the worlds of our solar system with Orbit.">
   <title>Orbit — A little further out</title>
   <link rel="stylesheet" href="/styles.css">
-  <script src="/orbit.js" defer></script>
+  <script type="module" src="/orbit.js"></script>
+  <script type="module" src="/solar-loader.js"></script>
 </head>
 <body>
   <div class="starfield" aria-hidden="true"></div>
@@ -22,7 +24,7 @@
         <p class="eyebrow"><span class="status-dot"></span> A FIELD GUIDE TO THE EXTRAORDINARY</p>
         <h1 id="hero-title">A little<br>further <em>out.</em></h1>
         <p class="hero-description">Leave the ordinary behind. Find a little perspective<br class="desktop-break"> in the worlds that make up our cosmic neighborhood.</p>
-        <a class="button" href="#explore">Explore the solar system <span class="arrow-icon" aria-hidden="true"></span></a>
+        <a class="button" href="#solar-system">Explore the solar system <span class="arrow-icon" aria-hidden="true"></span></a>
         <div class="hero-footnote"><span class="tiny-orbit" aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><p>One star. Eight planets.<br><span>Endless reasons to look up.</span></p></div>
       </div>
       <div class="cosmos" role="img" aria-label="An illustrated Saturn with sweeping golden rings against a star filled sky">
@@ -34,8 +36,36 @@
       </div>
       <div class="hero-bottom"><span>YOUR NEXT CHANGE OF PERSPECTIVE</span><a href="#explore" aria-label="Scroll to explore">SCROLL TO DISCOVER <span aria-hidden="true">↓</span></a></div>
     </section>
+    <section id="solar-system" class="solar-section" aria-labelledby="solar-title">
+      <div class="section-heading solar-heading"><div><p class="eyebrow">01 / THE LIVE ORBITAL EXPLORER</p><h2 id="solar-title">Your universe. <em>In motion.</em></h2></div><p>Eight worlds. One extraordinary star.<br>Choose a planet. Get a little closer.</p></div>
+      <div class="solar-shell">
+        <div class="solar-stage" id="solar-stage">
+          <div class="solar-poster" aria-hidden="true">
+            <div class="poster-orbits"><i></i><i></i><i></i><i></i><i></i></div><div class="poster-sun"></div>
+            <span class="poster-planet poster-earth"></span><span class="poster-planet poster-saturn"></span><span class="poster-planet poster-neptune"></span>
+          </div>
+          <div class="solar-canvas" id="solar-canvas"></div>
+          <div class="solar-topline"><span><span class="status-dot"></span> SOL / OUR SOLAR SYSTEM</span><span id="solar-status" role="status">PREPARING YOUR UNIVERSE</span></div>
+          <div class="solar-panel" id="solar-panel" aria-live="polite" aria-atomic="true">
+            <p class="solar-kicker" id="solar-kicker">A COSMIC NEIGHBORHOOD</p>
+            <h3 id="solar-name">A bigger picture.</h3>
+            <p id="solar-subtitle">A small place in an extraordinary universe.</p>
+            <p id="solar-description">Follow the light from Mercury to Neptune. Every world has a story. Where will you go first?</p>
+            <dl id="solar-facts" hidden><div><dt>FROM THE SUN</dt><dd id="solar-distance"></dd></div><div><dt>ORBITAL PERIOD</dt><dd id="solar-year"></dd></div><div><dt>DIAMETER</dt><dd id="solar-diameter"></dd></div></dl>
+            <a id="solar-learn" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">Explore with NASA <span class="arrow-icon" aria-hidden="true"></span></a>
+          </div>
+          <div class="solar-view-controls" aria-label="View controls"><button id="solar-zoom-in" type="button" aria-label="Zoom in" title="Zoom in">+</button><button id="solar-zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button><button id="solar-fullscreen" type="button" aria-label="Enter fullscreen" title="Fullscreen"><svg width="15" height="15" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 2H2v5m11-5h5v5M2 13v5h5m6 0h5v-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button></div>
+          <span class="solar-hover" id="solar-hover" hidden></span>
+          <button class="solar-gestures" id="solar-gestures" type="button" aria-pressed="false">Enable touch exploration</button>
+          <div class="solar-scene-note"><span id="solar-hint">DRAG TO ORBIT · SCROLL TO ZOOM</span><span>ILLUSTRATIVE SCALE · ARTISTIC SURFACES</span></div>
+        </div>
+        <div class="solar-toolbar"><div class="solar-playback"><button id="solar-play" type="button" aria-label="Pause orbital motion" aria-pressed="false"><span id="solar-play-icon" class="playback-icon paused-icon" aria-hidden="true"></span><span id="solar-play-text">Pause</span></button><span class="toolbar-divider"></span><label for="solar-speed">ORBIT SPEED</label><select id="solar-speed" aria-label="Orbital speed"><option value="0.25">Slow</option><option value="1" selected>Normal</option><option value="4">Fast</option></select></div><div class="solar-actions"><button id="solar-reset" type="button">Overview <span aria-hidden="true">↺</span></button><button id="solar-tour" class="tour-button" type="button" aria-pressed="false">Take the tour <span class="arrow-icon" aria-hidden="true"></span></button></div></div>
+        <nav class="solar-planets" aria-label="Choose a planet"><button type="button" data-focus="mercury" aria-pressed="false"><span style="--planet-color:#a89d8e"></span><small>01</small>Mercury</button><button type="button" data-focus="venus" aria-pressed="false"><span style="--planet-color:#d8ae73"></span><small>02</small>Venus</button><button type="button" data-focus="earth" aria-pressed="false"><span style="--planet-color:#75b5df"></span><small>03</small>Earth</button><button type="button" data-focus="mars" aria-pressed="false"><span style="--planet-color:#d99769"></span><small>04</small>Mars</button><button type="button" data-focus="jupiter" aria-pressed="false"><span style="--planet-color:#d8b18c"></span><small>05</small>Jupiter</button><button type="button" data-focus="saturn" aria-pressed="false"><span style="--planet-color:#dcc8a0"></span><small>06</small>Saturn</button><button type="button" data-focus="uranus" aria-pressed="false"><span style="--planet-color:#a0d9d7"></span><small>07</small>Uranus</button><button type="button" data-focus="neptune" aria-pressed="false"><span style="--planet-color:#658de3"></span><small>08</small>Neptune</button></nav>
+      </div>
+      <p class="solar-caption">A little room for wonder. <span>Planet sizes, distances, and orbital motion are adjusted for exploration.</span></p>
+    </section>
     <section id="explore" class="explore" aria-labelledby="explore-title">
-      <div class="section-heading"><div><p class="eyebrow">01 / PICK YOUR DESTINATION</p><h2 id="explore-title">Worlds worth wondering about.</h2></div><p>Same solar system.<br>Entirely different worlds.</p></div>
+      <div class="section-heading"><div><p class="eyebrow">02 / PICK YOUR DESTINATION</p><h2 id="explore-title">Worlds worth wondering about.</h2></div><p>Same solar system.<br>Entirely different worlds.</p></div>
       <div class="destination-tabs" role="tablist" aria-label="Planet destinations">
         <button id="tab-saturn" class="destination active" type="button" role="tab" aria-selected="true" aria-controls="planet-info" data-planet="saturn"><span class="mini-planet mini-saturn" aria-hidden="true"></span><span>Saturn<small>THE RINGED GIANT</small></span><span class="tab-arrow arrow-icon" aria-hidden="true"></span></button>
         <button id="tab-mars" class="destination" type="button" role="tab" aria-selected="false" aria-controls="planet-info" tabindex="-1" data-planet="mars"><span class="mini-planet mini-mars" aria-hidden="true"></span><span>Mars<small>THE RED PLANET</small></span><span class="tab-arrow arrow-icon" aria-hidden="true"></span></button>
@@ -43,7 +73,7 @@
       </div>
       <div id="planet-info" class="planet-info" role="tabpanel" aria-labelledby="tab-saturn" aria-live="polite"><div class="planet-story"><span class="story-index">06</span><div><h3 id="planet-title">A world with a signature.</h3><p id="planet-description">Billions of pieces of ice and rock. One extraordinary silhouette. Saturn reminds us that the most beautiful things are often a little unconventional.</p><a id="planet-link" href="https://science.nasa.gov/saturn/" target="_blank" rel="noopener noreferrer">Get to know Saturn <span class="arrow-icon" aria-hidden="true"></span></a></div></div><dl class="planet-facts"><div><dt>DISTANCE FROM SUN</dt><dd id="planet-distance">1.4 billion <small>km</small></dd></div><div><dt>ONE YEAR ON SATURN</dt><dd id="planet-year">29.4 <small>Earth years</small></dd></div><div><dt>PLANET TYPE</dt><dd id="planet-type">Gas giant</dd></div></dl></div>
     </section>
-    <section id="perspective" class="perspective" aria-labelledby="perspective-title"><span class="perspective-star" aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><p class="eyebrow">02 / A SHIFT IN PERSPECTIVE</p><h2 id="perspective-title">Big universe.<br><em>Beautifully small us.</em></h2><p>Sometimes, all it takes is looking up to see things differently.<br>Stay curious. Take the scenic route. There’s a whole universe out there.</p><a href="https://science.nasa.gov/universe/" target="_blank" rel="noopener noreferrer">Keep looking up <span class="arrow-icon" aria-hidden="true"></span></a></section>
+    <section id="perspective" class="perspective" aria-labelledby="perspective-title"><span class="perspective-star" aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><p class="eyebrow">03 / A SHIFT IN PERSPECTIVE</p><h2 id="perspective-title">Big universe.<br><em>Beautifully small us.</em></h2><p>Sometimes, all it takes is looking up to see things differently.<br>Stay curious. Take the scenic route. There’s a whole universe out there.</p><a href="https://science.nasa.gov/universe/" target="_blank" rel="noopener noreferrer">Keep looking up <span class="arrow-icon" aria-hidden="true"></span></a></section>
   </main>
   <footer><a class="brand" href="/">◉ orbit.</a><p>A little perspective from a very big universe.</p><span>MADE FOR THE CURIOUS <span aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></span></footer>
 </body>
