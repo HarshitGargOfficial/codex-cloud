@@ -19,6 +19,7 @@
       <a href="#top" data-section="top" aria-label="Back to top" aria-current="location"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><ellipse cx="12" cy="12" rx="10" ry="5" transform="rotate(-30 12 12)"/></svg><span class="nav-label">Home</span></a>
       <a href="#solar-system" data-section="solar-system" aria-label="Solar system"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><span class="nav-label">Solar system</span></a>
       <a href="#explore" data-section="explore" aria-label="Destinations"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="3"/></svg><span class="nav-label">Worlds</span></a>
+      <a href="#big-bang" data-section="big-bang" aria-label="Big Bang"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v5m0 12v5M1 12h5m12 0h5M4 4l4 4m8 8 4 4M4 20l4-4m8-8 4-4"/></svg><span class="nav-label">Origins</span></a>
       <a href="#perspective" data-section="perspective" aria-label="Our perspective"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M2 12h20M5 5l14 14M5 19 19 5"/></svg><span class="nav-label">Perspective</span></a>
     </nav>
     <a class="header-link" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">The universe awaits <span class="arrow-icon" aria-hidden="true"></span></a>
@@ -78,7 +79,31 @@
       </div>
       <div id="planet-info" class="planet-info" role="tabpanel" aria-labelledby="tab-saturn" aria-live="polite"><div class="planet-story"><span class="story-index">06</span><div><h3 id="planet-title">A world with a signature.</h3><p id="planet-description">Billions of pieces of ice and rock. One extraordinary silhouette. Saturn reminds us that the most beautiful things are often a little unconventional.</p><a id="planet-link" href="https://science.nasa.gov/saturn/" target="_blank" rel="noopener noreferrer">Get to know Saturn <span class="arrow-icon" aria-hidden="true"></span></a></div></div><dl class="planet-facts"><div><dt>DISTANCE FROM SUN</dt><dd id="planet-distance">1.4 billion <small>km</small></dd></div><div><dt>ONE YEAR ON SATURN</dt><dd id="planet-year">29.4 <small>Earth years</small></dd></div><div><dt>PLANET TYPE</dt><dd id="planet-type">Gas giant</dd></div></dl></div>
     </section>
-    <section id="perspective" class="perspective" aria-labelledby="perspective-title"><span class="perspective-star" aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><p class="eyebrow">03 / A SHIFT IN PERSPECTIVE</p><h2 id="perspective-title">Big universe.<br><em>Beautifully small us.</em></h2><p>Sometimes, all it takes is looking up to see things differently.<br>Stay curious. Take the scenic route. There’s a whole universe out there.</p><a href="https://science.nasa.gov/universe/" target="_blank" rel="noopener noreferrer">Keep looking up <span class="arrow-icon" aria-hidden="true"></span></a></section>
+    <section id="big-bang" class="bang-section" aria-labelledby="bang-title">
+      <div class="section-heading"><div><p class="eyebrow">03 / THE STORY BEFORE THE STARS</p><h2 id="bang-title">Everything. <em>From a beginning.</em></h2></div><p>13.8 billion years in the making.<br>A journey through the birth of our universe.</p></div>
+      <div class="bang-shell">
+        <div class="bang-stage">
+          <canvas id="bang-canvas" aria-label="Artistic visualization of the universe expanding and forming cosmic structure"></canvas>
+          <div class="bang-topline"><span><span class="status-dot"></span> THE ORIGIN OBSERVATORY</span><span>SPACE ITSELF IS EXPANDING</span></div>
+          <div class="bang-scene-copy"><p id="bang-scene-era">THE EARLIEST FRONTIER</p><h3 id="bang-scene-title">Before the<br>first light.</h3><p id="bang-scene-caption">A hotter, denser universe. An extraordinary beginning.</p></div>
+          <div class="bang-clock"><span>TIME SINCE THE BIG BANG</span><strong id="bang-time">&lt; 10⁻⁴³ seconds</strong><span id="bang-temperature">Beyond tested physics</span></div>
+          <div class="bang-scene-footer"><span>AN ARTISTIC HISTORY OF THE COSMOS</span><span id="bang-chapter">01 / 08</span></div>
+        </div>
+        <div class="bang-transport">
+          <button id="bang-play" class="bang-primary" type="button" aria-pressed="false"><span id="bang-play-symbol" aria-hidden="true"></span><span id="bang-play-label">Begin the journey</span></button>
+          <button id="bang-replay" type="button" aria-label="Restart the cosmic timeline">↺ <span>Restart</span></button>
+          <label class="bang-scrub-label" for="bang-scrub">COSMIC TIMELINE</label><input id="bang-scrub" type="range" min="0" max="1000" value="0" aria-label="Explore the history of the universe" aria-valuetext="Earliest frontier">
+          <output id="bang-progress">0%</output>
+        </div>
+        <div class="bang-epochs" role="group" aria-label="Choose a cosmic era"></div>
+        <div class="bang-dossier" aria-live="polite" aria-atomic="true">
+          <div class="bang-story"><p class="eyebrow" id="bang-dossier-kicker">CHAPTER 01 / THE EARLIEST FRONTIER</p><h3 id="bang-detail-title">The edge of what we know.</h3><p id="bang-description"></p><div class="bang-insight"><span>LOOK CLOSER</span><p id="bang-insight"></p></div></div>
+          <div class="bang-science"><dl><div><dt>UNIVERSE AT THIS STAGE</dt><dd id="bang-state"></dd></div><div><dt>THE TRANSFORMATION</dt><dd id="bang-process"></dd></div></dl><div class="bang-evidence"><span id="bang-evidence-label">WHAT WE KNOW</span><p id="bang-evidence"></p></div><a href="https://science.nasa.gov/universe/overview/" target="_blank" rel="noopener noreferrer">Explore the science with NASA <span class="arrow-icon" aria-hidden="true"></span></a></div>
+        </div>
+      </div>
+      <div class="bang-notes"><p><span>∞</span> An expansion of space, everywhere. The Big Bang was not an explosion into an empty room; there is no known central point.</p><p>Illustrative particles and colors. Chapters have equal playback time, not equal duration in cosmic history. Early times and temperatures are approximate; the earliest physics remains uncertain.</p></div>
+    </section>
+    <section id="perspective" class="perspective" aria-labelledby="perspective-title"><span class="perspective-star" aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><p class="eyebrow">04 / A SHIFT IN PERSPECTIVE</p><h2 id="perspective-title">Big universe.<br><em>Beautifully small us.</em></h2><p>Sometimes, all it takes is looking up to see things differently.<br>Stay curious. Take the scenic route. There’s a whole universe out there.</p><a href="https://science.nasa.gov/universe/" target="_blank" rel="noopener noreferrer">Keep looking up <span class="arrow-icon" aria-hidden="true"></span></a></section>
   </main>
   <footer><a class="brand" href="/">◉ orbit.</a><p>A little perspective from a very big universe.</p><span>MADE FOR THE CURIOUS <span aria-hidden="true"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><path d="M20 3v34M3 20h34M8 8l24 24M8 32L32 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></span></footer>
 </body>
