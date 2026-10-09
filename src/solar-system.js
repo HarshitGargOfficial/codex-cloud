@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SolarFallback } from './solar-fallback.js';
 import { PLANETS, planetByKey } from './planets.js';
 import { makePlanetTexture, makeCloudTexture, makeRingTexture, makeGlowTexture } from './planet-textures.js';
 
@@ -15,7 +16,7 @@ let reducedMotion = motionPreference.matches;
 let renderer, composer, scene, camera, controls, sun, sunMaterial, bloom, labelLayer, fillLight, asteroidBelt;
 let running = !reducedMotion, visible = true, failed = false, speed = 1, simTime = 0, elapsed = 0, selected = null;
 let transition = null, intro = null, frameId = null, lastTime = 0, tourActive = false, tourIndex = 0, tourElapsed = 0;
-let pendingSelection = null, ready = false;
+let pendingSelection = null, ready = false, flatScene = null;
 const planets = [], picks = [], planetButtons = [...shell.querySelectorAll('[data-focus]')];
 const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2(), temp = new THREE.Vector3();
 const overviewTarget = new THREE.Vector3(0, 0, 0);
@@ -29,6 +30,7 @@ function updatePlayback() {
   $('solar-play').setAttribute('aria-label', running ? 'Pause orbital motion' : 'Resume orbital motion');
   $('solar-play-icon').className = running ? 'playback-icon paused-icon' : 'playback-icon play-icon';
   $('solar-play-text').textContent = running ? 'Pause' : 'Play';
+  $('solar-motion-state').textContent = `${running ? 'Playing' : 'Paused'} · ${speed}×`;
 }
 function setStatus(text) { $('solar-status').textContent = text; }
 function stopTour() {
@@ -39,6 +41,7 @@ function stopTour() {
 }
 function renderPlanetInfo(key) {
   const planet = planetByKey[key];
+  shell.classList.remove('solar-overview');
   selected = key;
   $('solar-kicker').textContent = `PLANET ${planet.number} / ${planet.type.toUpperCase()}`;
   $('solar-name').textContent = planet.name;
@@ -54,6 +57,7 @@ function renderPlanetInfo(key) {
   window.dispatchEvent(new CustomEvent('orbit:planet-focused', { detail: key }));
 }
 function overviewInfo() {
+  shell.classList.add('solar-overview');
   selected = null;
   $('solar-kicker').textContent = 'A COSMIC NEIGHBORHOOD';
   $('solar-name').textContent = 'A bigger picture.';
@@ -66,6 +70,8 @@ function overviewInfo() {
 }
 function setTransition(key) {
   if (!ready) { pendingSelection = key; return; }
+  if (flatScene) { if (!key) flatScene.reset(); return; }
+  resize();
   intro = null;
   transition = { key, start: performance.now(), duration: reducedMotion ? 0 : 2000, from: camera.position.clone(), targetFrom: controls.target.clone(), offset: new THREE.Vector3() };
   if (key) {
@@ -76,7 +82,7 @@ function setTransition(key) {
   }
   controls.enablePan = !key;
   controls.minDistance = key ? planetByKey[key].radius * 2.7 : 12;
-  controls.maxDistance = key ? 230 : 240;
+  controls.maxDistance = Math.max(240, overviewPosition.length() * 1.4);
 }
 function focusPlanet(key, fromTour = false) {
   if (!planetByKey[key]) return;
@@ -102,13 +108,18 @@ window.addEventListener('orbit:select-planet', event => {
   focusPlanet(event.detail);
   $('solar-system').scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'start' });
 });
-$('solar-play').addEventListener('click', () => { running = !running; updatePlayback(); });
-$('solar-speed').addEventListener('change', event => { speed = Number(event.target.value); });
+$('solar-play').addEventListener('click', () => { running = !running; if (!running) { intro = null; transition = null; } updatePlayback(); startRendering(); });
+document.querySelectorAll('[data-speed]').forEach(button => button.addEventListener('click', () => {
+  speed = Number(button.dataset.speed);
+  document.querySelectorAll('[data-speed]').forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+  updatePlayback();
+}));
 $('solar-reset').addEventListener('click', resetView);
 $('solar-tour').addEventListener('click', () => {
   if (tourActive) { stopTour(); return; }
   if (!ready) return;
   tourActive = true; tourIndex = 0; tourElapsed = 0;
+  running = true; updatePlayback();
   $('solar-tour').setAttribute('aria-pressed', 'true');
   $('solar-tour').textContent = 'Stop the tour ×';
   focusPlanet(PLANETS[0].key, true);
@@ -129,6 +140,7 @@ document.addEventListener('fullscreenchange', () => { $('solar-fullscreen').setA
 function zoom(factor) {
   if (!ready || failed) return;
   stopTour(); intro = null; transition = null;
+  if (flatScene) { flatScene.setZoom(factor); return; }
   const offset = camera.position.clone().sub(controls.target);
   offset.setLength(THREE.MathUtils.clamp(offset.length() * factor, controls.minDistance, controls.maxDistance));
   camera.position.copy(controls.target).add(offset);
@@ -209,14 +221,39 @@ function buildAsteroids() {
   asteroidBelt = belt; belt.material.transparent = true; scene.add(belt);
 }
 function resize() {
-  if (!renderer || failed) return;
+  if (failed) return;
   const width = stage.clientWidth, height = stage.clientHeight;
   if (!width || !height) return;
+  if (flatScene) { flatScene.resize(width, height); return; }
+  if (!renderer) return;
   camera.aspect = width / height;
-  camera.setViewOffset(width, height, width <= 700 ? 0 : -width * .10, width <= 700 ? -height * .19 : 0, width, height);
+  const mobile = width <= 700;
+  const bounds = { left: mobile ? 25 : 290, right: width - (mobile ? 25 : 70), top: mobile ? 225 : 70, bottom: height - 75 };
+  const centerX = (bounds.left + bounds.right) / 2;
+  const centerY = selected ? (mobile ? height * .69 : height * .5) : (bounds.top + bounds.bottom) / 2;
+  camera.setViewOffset(width, height, width / 2 - centerX, height / 2 - centerY, width, height);
   camera.updateProjectionMatrix(); renderer.setSize(width, height);
   if (composer) composer.setSize(width, height);
-  if (width <= 700) overviewPosition.set(0, 94, 133); else overviewPosition.set(0, 66, 91);
+  // Fit the entire outer orbit, including planet geometry, in the usable area.
+  const fitCamera = camera.clone();
+  const direction = new THREE.Vector3(0, 1.25, 1).normalize();
+  let distance = 90;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    fitCamera.position.copy(direction).multiplyScalar(distance); fitCamera.lookAt(overviewTarget); fitCamera.updateMatrixWorld();
+    let fits = true;
+    for (let i = 0; i < 72; i++) {
+      const angle = i / 72 * Math.PI * 2;
+      temp.set(Math.cos(angle) * 66, 0, Math.sin(angle) * 66).project(fitCamera);
+      const x = (temp.x + 1) / 2 * width, y = (1 - temp.y) / 2 * height;
+      if (x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom) { fits = false; break; }
+    }
+    if (fits) break;
+    distance *= 1.045;
+  }
+  overviewPosition.copy(direction).multiplyScalar(distance);
+  controls.maxDistance = Math.max(240, distance * 1.4);
+  if (ready && !selected && !transition && !intro) { camera.position.copy(overviewPosition); controls.target.copy(overviewTarget); }
+
 }
 function updateOrbits() {
   for (const planet of planets) {
@@ -224,6 +261,7 @@ function updateOrbits() {
     planet.root.position.set(Math.cos(angle) * planet.data.orbit, 0, Math.sin(angle) * planet.data.orbit);
     planet.mesh.rotation.y = elapsed * .08 * (planet.data.key === 'venus' ? -1 : 1);
     if (planet.clouds) planet.clouds.rotation.y = elapsed * .1;
+    planet.mesh.parent.scale.setScalar(selected ? 1 : Math.max(1, 1.05 / planet.data.radius));
     planet.orbit.material.opacity = selected ? (selected === planet.data.key ? .32 : .06) : .15;
     planet.orbit.material.color.set(selected === planet.data.key ? '#e79656' : '#8babc9');
   }
@@ -250,9 +288,9 @@ function updateCamera(now, previousSelectedPosition) {
 function updateLabels() {
   const width = stage.clientWidth, height = stage.clientHeight;
   for (const { root, label, data } of sceneLabels) {
-    temp.copy(root.position); temp.y += data.radius + .8; temp.project(camera);
+    temp.copy(root.position); temp.y += Math.max(data.radius, 1.05) + .8; temp.project(camera);
     const x = (temp.x + 1) / 2 * width, y = (1 - temp.y) / 2 * height;
-    const hidden = selected || temp.z > 1 || temp.z < -1 || x < 20 || x > width - 40 || y < 60 || y > height - 60 || (width > 700 && x < 282 && y < 420) || (width <= 700 && y < 310);
+    const hidden = selected || temp.z > 1 || temp.z < -1 || x < 20 || x > width - 40 || y < 60 || y > height - 60 || (width > 700 && x < 282 && y < 420) || (width <= 700 && y < 205);
     label.hidden = Boolean(hidden); label.style.transform = `translate(${x}px,${y}px) translate(-50%,0)`;
   }
 }
@@ -262,18 +300,21 @@ function animate(now) {
   if (!visible || document.hidden || failed) { lastTime = 0; return; }
   const wallDt = lastTime ? (now - lastTime) / 1000 : 0;
   const dt = Math.min(wallDt, .06);
-  if (lastTime && sampleCount < 180) { averageFrame = averageFrame * .95 + (now - lastTime) * .05; sampleCount++; if (sampleCount === 180 && averageFrame > 34 && composer) { composer.dispose(); composer = null; renderer.setPixelRatio(1); resize(); } }
+  if (!flatScene && lastTime && sampleCount < 180) { averageFrame = averageFrame * .95 + (now - lastTime) * .05; sampleCount++; if (sampleCount === 180 && averageFrame > 34 && composer) { composer.dispose(); composer = null; renderer.setPixelRatio(1); resize(); } }
   lastTime = now;
-  const oldPosition = selected ? planets.find(item => item.data.key === selected).root.position.clone() : null;
+  const oldPosition = !flatScene && selected ? planets.find(item => item.data.key === selected).root.position.clone() : null;
   if (running) { simTime += dt * speed; elapsed += dt; }
+  if (!flatScene) {
   updateOrbits(); updateCamera(now, oldPosition); updateLabels();
   fillLight.position.copy(camera.position); fillLight.position.y += 15; fillLight.target.position.copy(controls.target);
   fillLight.intensity = selected ? .9 : .45;
   asteroidBelt.material.opacity = selected ? .15 : 1;
   sunMaterial.uniforms.uTime.value = elapsed;
   if (running) sun.rotation.y += dt * .015;
-  if (tourActive) { tourElapsed += wallDt; if (tourElapsed >= (reducedMotion ? 10 : 8)) { tourElapsed = 0; tourIndex++; if (tourIndex >= PLANETS.length) stopTour(); else { focusPlanet(PLANETS[tourIndex].key, true); setStatus(`GUIDED TOUR / ${String(tourIndex + 1).padStart(2, '0')} OF 08`); } } }
-  if (composer) composer.render(); else renderer.render(scene, camera);
+  }
+  if (tourActive && running) { tourElapsed += wallDt; if (tourElapsed >= (reducedMotion ? 10 : 8)) { tourElapsed = 0; tourIndex++; if (tourIndex >= PLANETS.length) stopTour(); else { focusPlanet(PLANETS[tourIndex].key, true); setStatus(`GUIDED TOUR / ${String(tourIndex + 1).padStart(2, '0')} OF 08`); } } }
+  if (flatScene) flatScene.render(simTime, selected);
+  else if (composer) composer.render(); else renderer.render(scene, camera);
   frameId = requestAnimationFrame(animate);
 }
 function startRendering() { if (ready && !failed && visible && !document.hidden && frameId === null) { lastTime = 0; frameId = requestAnimationFrame(animate); } }
@@ -292,17 +333,28 @@ function attachPicking() {
   renderer.domElement.addEventListener('pointerleave', () => { $('solar-hover').hidden = true; });
   controls.addEventListener('start', () => { stopTour(); transition = null; intro = null; });
 }
-function fallback(message) {
-  failed = true; ready = false; stopRendering(); stopTour();
-  shell.closest('.solar-section').classList.add('solar-unavailable'); shell.classList.remove('solar-ready');
+function observeVisibility() {
+  new ResizeObserver(resize).observe(stage);
+  const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) startRendering(); else stopRendering(); }, { threshold: .01 }); observer.observe(shell);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopRendering(); else startRendering(); });
+}
+function fallback() {
+  stopRendering(); stopTour();
   if (labelLayer) labelLayer.remove();
-  if (renderer) { renderer.dispose(); renderer.domElement.remove(); }
-  if (composer) composer.dispose();
-  setStatus(message);
-  $('solar-hint').textContent = 'CHOOSE A PLANET TO EXPLORE ITS STORY';
-  for (const id of ['solar-play', 'solar-speed', 'solar-tour', 'solar-zoom-in', 'solar-zoom-out']) $(id).disabled = true;
+  if (controls) controls.dispose();
+  if (renderer) { renderer.dispose(); renderer.domElement.remove(); renderer = null; }
+  if (composer) { composer.dispose(); composer = null; }
+  flatScene = new SolarFallback($('solar-canvas'), key => focusPlanet(key));
+  failed = false; ready = true; shell.classList.add('solar-ready', 'solar-flat-mode'); shell.dataset.ready = 'true'; shell.dataset.renderer = 'svg';
+  $('solar-hint').textContent = 'SELECT A PLANET · PAUSE OR CHANGE ORBIT SPEED';
+  $('solar-gestures').hidden = true;
+  resize(); observeVisibility(); updatePlayback();
+  setStatus('LIVE / EIGHT WORLDS IN MOTION');
+  if (pendingSelection) focusPlanet(pendingSelection);
+  startRendering();
 }
 async function initialize() {
+  shell.classList.add('solar-overview');
   updatePlayback();
   if (!shell.requestFullscreen) $('solar-fullscreen').hidden = true;
   if (compact) $('solar-hint').textContent = 'CHOOSE A PLANET TO TRAVEL CLOSER';
@@ -319,19 +371,19 @@ async function initialize() {
     buildSun();
     // Give the loading message a frame before generating the surface maps.
     await new Promise(resolve => requestAnimationFrame(resolve));
+    if (flatScene) return;
     buildPlanets(); buildStars(); buildAsteroids(); updateOrbits();
     if (!compact) { composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera)); bloom = new UnrealBloomPass(new THREE.Vector2(stage.clientWidth, stage.clientHeight), .65, .55, 1.5); composer.addPass(bloom); composer.addPass(new OutputPass()); }
     resize(); controls.target.copy(overviewTarget); camera.position.copy(overviewPosition);
-    if (!reducedMotion) { const from = overviewPosition.clone().multiplyScalar(1.18); from.x = 16; intro = { start: performance.now(), from }; camera.position.copy(from); }
+    if (!reducedMotion && running) { const from = overviewPosition.clone().multiplyScalar(1.18); from.x = 16; intro = { start: performance.now(), from }; camera.position.copy(from); }
     attachPicking();
-    ready = true; shell.classList.add('solar-ready'); shell.dataset.ready = 'true';
+    ready = true; shell.classList.add('solar-ready'); shell.dataset.ready = 'true'; shell.dataset.renderer = 'webgl';
     setStatus('LIVE / EIGHT WORLDS IN MOTION');
-    new ResizeObserver(resize).observe(stage);
-    const visibilityObserver = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) startRendering(); else stopRendering(); }, { threshold: .01 }); visibilityObserver.observe(stage);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) stopRendering(); else startRendering(); });
-    motionPreference.addEventListener('change', event => { reducedMotion = event.matches; if (reducedMotion) { running = false; intro = null; if (transition) transition.duration = 0; updatePlayback(); } });
+    observeVisibility();
+
     if (pendingSelection) focusPlanet(pendingSelection);
     startRendering();
   } catch (error) { console.warn('Solar explorer fallback:', error.message); fallback('STATIC EXPLORER / 3D IS UNAVAILABLE'); }
 }
+motionPreference.addEventListener('change', event => { reducedMotion = event.matches; if (reducedMotion) { running = false; intro = null; if (transition) transition.duration = 0; updatePlayback(); } });
 initialize();
